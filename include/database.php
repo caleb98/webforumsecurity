@@ -354,7 +354,245 @@ function get_user_discord_token(int $id) : object {
 		'expires' => $tokenData['expires']
 	]);
 	return $token;
+}
 
+/**
+ * Creates a new permission.
+ * 
+ * @param string	$permission		name of the permission to create
+ * 
+ * @return bool		whether or not creation of the permission was successful
+ */
+function create_permission(string $permission) : bool {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	// Create statement and insert
+	$stmt = $conn->prepare('INSERT IGNORE INTO permissions (permission) VALUES (?);');
+	$stmt->bind_param('s', $permission);
+	$stmt->execute();
+
+	return $stmt->error === '';
+}
+
+/**
+ * Creates a new role.
+ * 
+ * @param string	$role	name of the role to create
+ * 
+ * @return bool		whether or not creation of the role was successful
+ */
+function create_role(string $role) : bool {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	// Create statement and insert
+	$stmt = $conn->prepare('INSERT IGNORE INTO roles (role) VALUES (?);');
+	$stmt->bind_param('s', $role);
+	$stmt->execute();
+
+	return $stmt->error === '';
+}
+
+/**
+ * Adds a permission to a given role.
+ * 
+ * @param string	$role		the role
+ * @param string	$permission	the permission to associate with the role
+ * 
+ * @return bool		whether or not the update was successful
+ */
+function add_role_permission(string $role, string $permission) : bool {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	// Create statement to select
+	$stmt = $conn->prepare(<<<STR
+		INSERT IGNORE INTO role_permissions
+		SELECT roles.id, permissions.id
+		FROM roles, permissions
+		WHERE roles.role=? AND permissions.permission=?;
+		STR);
+
+	$stmt->bind_param('ss', $role, $permission);
+	$stmt->execute();
+
+	return $stmt->error === '';
+}
+
+/**
+ * Removes a permission from a given role.
+ * 
+ * @param string	$role		the role
+ * @param string	$permission	the permission to remove from the role
+ * 
+ * @return bool		whether or not the update was successful
+ */
+function remove_role_permission(string $role, string $permission) : bool {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	// Create statement to select
+	$stmt = $conn->prepare(<<<STR
+		DELETE FROM role_permissions
+		WHERE roleId = (SELECT id FROM roles WHERE role = ?)
+		AND permissionId = (SELECT id FROM permissions WHERE permission = ?);
+		STR);
+
+	$stmt->bind_param('ss', $role, $permission);
+	$stmt->execute();
+
+	return $stmt->error === '';
+}
+
+/**
+ * Retrieves an array of permissions that are associated with the given role.
+ */
+function get_role_permissions(string $role) : array {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	// Create statement and execute
+	$stmt = $conn->prepare(<<<STR
+		SELECT role, permission FROM role_permissions
+		JOIN roles ON role_permissions.roleId = roles.id
+		JOIN permissions ON role_permissions.permissionId = permissions.id
+		WHERE role = ?;
+		STR);
+	$stmt->bind_param('s', $role);
+	$stmt->execute();
+	$result = $stmt->get_result();
+
+	// Run through all the rows and collect the permissions
+	$permissions = [];
+	while($row = $result->fetch_assoc()) {
+		array_push($permissions, $row['permission']);
+	}
+
+	return $permissions;
+}
+
+/**
+ * Retrieves an array of roles that a user has under the given context.
+ */
+function get_user_roles(int $id, string $context) : array {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	// Create statement and execute
+	$stmt = $conn->prepare(<<<STR
+		SELECT role FROM user_roles
+		JOIN roles ON user_roles.roleId = roles.id
+		WHERE userId = ? AND context = ?;
+		STR);
+	$stmt->bind_param('is', $id, $context);
+	$stmt->execute();
+	$result = $stmt->get_result();
+
+	// Run through all the rows and collect the roles.
+	$roles = [];
+	while($row = $result->fetch_assoc()) {
+		array_push($roles, $row['role']);
+	}
+
+	return $roles;
+}
+
+/**
+ * Retrieves an array of all permissions that a user has under a given context.
+ */
+function get_user_permissions(int $id, string $context) : array {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	// Create statement and execute
+	$stmt = $conn->prepare(<<<STR
+		SELECT DISTINCT permission FROM user_roles
+		JOIN roles ON user_roles.roleId = roles.id
+		JOIN role_permissions ON user_roles.roleId = role_permissions.roleId
+		JOIN permissions ON role_permissions.permissionId = permissions.id
+		WHERE userId = ? AND context = ?;
+		STR);
+	$stmt->bind_param('is', $id, $context);
+	$stmt->execute();
+	$result = $stmt->get_result();
+
+	// Run through all the rows and collect the permissions.
+	$permissions = [];
+	while($row = $result->fetch_assoc()) {
+		array_push($permissions, $row['permission']);
+	}
+
+	return $permissions;
+}
+
+/**
+ * Adds a role to a given user under a given context.
+ */
+function add_user_role(int $id, string $context, string $role) : bool {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	// Create and execute statement
+	$stmt = $conn->prepare(<<<STR
+		INSERT IGNORE INTO user_roles
+		SELECT ?, roles.id, ?
+		FROM roles
+		WHERE roles.role=?;
+		STR);
+
+	$stmt->bind_param('iss', $id, $context, $role);
+	$stmt->execute();
+
+	return $stmt->error === '';
+}
+
+/**
+ * Removes a role from a given user under a given context.
+ */
+function remove_user_role(int $id, string $context, string $role) : bool {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	// Create statement and execute
+	$stmt = $conn->prepare(<<<STR
+		DELETE FROM user_roles
+		WHERE userId = ? 
+		AND context = ? 
+		AND roleId = (SELECT id FROM roles WHERE role = ?)
+		STR);
+
+	$stmt->bind_param('iss', $id, $context, $role);
+	$stmt->execute();
+
+	return $stmt->error === '';
 }
 
 ?>
