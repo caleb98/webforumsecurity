@@ -1,6 +1,6 @@
 <?php
 
-require_once('include/core.php');
+require_once('include/Core.php');
 
 // Create the google api client
 $client = create_google_api_client();

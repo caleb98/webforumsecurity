@@ -1,8 +1,7 @@
 <?php 
 
-require_once('include/core.php');
-
-require_once('include/header.php');
+require_once('include/Core.php');
+require_once('include/Header.php');
 
 ?> 
 
@@ -22,4 +21,4 @@ require_once('include/header.php');
 	</div>
 </div>
 
-<?php include_once('include/footer.php'); ?>
+<?php include_once('include/Footer.php'); ?>

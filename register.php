@@ -1,10 +1,10 @@
 <?php
 
-require_once 'include/core.php';
+require_once('include/Core.php');
 
-require_once 'include/validation.php';
-require_once 'include/database.php';
-require_once 'include/security.php';
+require_once('include/Validation.php');
+require_once('include/Database.php');
+require_once('include/Security.php');
 
 $alternateRegister = false;
 
@@ -315,5 +315,5 @@ include_once('include/header.php');
 </div>
 
 <?php
-include_once('include/footer.php');
+include_once('include/Footer.php');
 ?>

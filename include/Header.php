@@ -1,7 +1,7 @@
 <?php 
 
-require_once 'include/core.php';
-require_once 'include/security.php';
+require_once('include/Core.php');
+require_once('include/Security.php');
 
 // Check if the user is signed in and if they need to update their password
 if (is_logged_in()) {
