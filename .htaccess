@@ -1,8 +1,6 @@
 DirectoryIndex home.php
 
 RewriteEngine on
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^([a-zA-Z]+)$ mapper.php?control=$1 [QSA]
 RewriteRule ^([a-zA-Z]+)/([a-zA-Z]+)$ mapper.php?control=$1&context=$2 [QSA]
 RewriteRule ^([a-zA-Z]+)/([a-zA-Z]+)/([a-zA-Z]+)$ mapper.php?control=$1&context=$2&name=$3 [QSA]

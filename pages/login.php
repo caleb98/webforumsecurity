@@ -5,6 +5,8 @@ require_once('include/Core.php');
 $pageTitle = 'Login';
 include_once('include/Header.php');
 
+$loginError = $loginError ?? '';
+
 ?>
 
 <div class="container">
@@ -14,6 +16,11 @@ include_once('include/Header.php');
 			<!-- Login Form -->
 			<form action="login" method="post">
 				<h1>Login</h1>
+				<?php if($loginError) : ?>
+					<div class='text-danger'>
+						<?php echo $loginError; ?>
+					</div>
+				<?php endif; ?>
 				<div class="mb-3">
 					<label for="username" class="form-label">Username:</label>
 					<input type="text" class="form-control" name="username" id="username" autocomplete="off">

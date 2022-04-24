@@ -6,6 +6,7 @@ $pageTitle = 'Register';
 include_once('include/Header.php');
 
 $alternateRegister = $alternateRegister ?? false;
+$registerError = $registerError ?? '';
 
 ?>
 
@@ -16,6 +17,13 @@ $alternateRegister = $alternateRegister ?? false;
 			<!-- Registration Form -->
 			<form action="<?php echo $alternateRegister ? '/register/site/alternate' : '/register' ?>" method="post">
 				<h1>Register</h1>
+
+				<!-- Show error if present -->
+				<?php if($registerError) : ?>
+					<div class='text-danger'>
+						<?php echo $registerError; ?>
+					</div>
+				<?php endif; ?>
 
 				<!-- Regular Form Contents -->
 				<?php if (!$alternateRegister): ?>

@@ -195,21 +195,21 @@ class RegisterController extends WebForumController {
 
 					// Create appropriate messages for invalid inputs
 					if (!$usernameValid) {
-						echo 'Invalid username.';
+						$registerError = 'Invalid username.';
 					}
 					elseif (!$passwordValid) {
-						echo 'Invalid password.';
+						$registerError = 'Invalid password.';
 					}
 					elseif (!$email) {
-						echo 'Invalid email.';
+						$registerError =  'Invalid email.';
 					}
 
 					// Create appropriate messages for if username/email exists
 					elseif (username_exists($username)) {
-						echo 'Username is already in use.';
+						$registerError =  'Username is already in use.';
 					}
 					elseif (email_exists($email)) {
-						echo 'Email is already in use.';
+						$registerError =  'Email is already in use.';
 					}
 
 					// Checks passed. We can create the user and add them.
@@ -221,6 +221,10 @@ class RegisterController extends WebForumController {
 						$user = get_user_by_username($username);
 						login($user);
 					}
+
+					// Show the register page with any errors if registration was
+					// unsuccessful.
+					include(__DIR__ . '/../pages/register.php');
 
 				}
 			}
@@ -249,15 +253,15 @@ class RegisterController extends WebForumController {
 
 					// Create appropriate messages for invalid inputs
 					if (!$usernameValid) {
-						echo 'Invalid username.';
+						$registerError =  'Invalid username.';
 					}
 					elseif (!$email) {
-						echo 'Invalid email.';
+						$registerError =  'Invalid email.';
 					}
 
 					// Create appropriate message if the username already exists
 					elseif (username_exists($username)) {
-						echo 'Username is already in use.';
+						$registerError =  'Username is already in use.';
 					}
 
 					// Checks passed, so create the user and add them.
@@ -281,6 +285,10 @@ class RegisterController extends WebForumController {
 						// Login the user
 						login($user);
 					}
+
+					// Show the register page with any errors if registration was
+					// unsuccessful.
+					include(__DIR__ . '/../pages/register.php');
 
 				}
 			}

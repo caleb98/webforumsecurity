@@ -38,7 +38,7 @@ elseif(is_post_request()) {
 }
 
 else {
-	echo 'invalid resource';
+	echo 'invalid request';
 	die();
 }
 

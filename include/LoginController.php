@@ -89,13 +89,8 @@ class LoginController extends WebForumController {
 					$username = $args['username'];
 					$password = $args['password'];
 
-					$loginError = 'Invalid login credentials.';
-
 					// Check if the user exists.
-					if (!username_exists($username)) {
-						echo $loginError;
-					}
-					else {
+					if (username_exists($username)) {
 						// Grab the user
 						$userInfo = get_user_by_username($username);
 						$passwordHash = $userInfo['password'];
@@ -104,10 +99,11 @@ class LoginController extends WebForumController {
 						if(password_matches($password, $passwordHash)) {
 							login($userInfo);
 						}
-						else {
-							echo $loginError;
-						}
 					}
+
+					// Login was unsuccessful. Show error message.
+					$loginError = 'Invalid login credentials.';
+					include(__DIR__ . '/../pages/login.php');
 				}
 			}
 		);
