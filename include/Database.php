@@ -11,7 +11,7 @@ $DATABASE_HOST = getenv('WEBFORUM_DBHOST');
  * 
  * @return mysqli	the new db connection
  */
-function get_db_connection() {
+function get_db_connection(): mysqli {
 	global $DATABASE_USER, $DATABASE_PASS, $DATABASE_NAME, $DATABASE_HOST;
 	return new mysqli($DATABASE_HOST, $DATABASE_USER, $DATABASE_PASS, $DATABASE_NAME);
 }
@@ -32,7 +32,7 @@ function get_db_connection() {
  * @return mixed	true if insert was successful; error message otherwise.
  */
 function insert_user(string $username, string $email, ?string $passwordHash, 
-	string $googleId = null, string $discordId = null) : mixed {
+	string $googleId = null, string $discordId = null): mixed {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -60,7 +60,7 @@ function insert_user(string $username, string $email, ?string $passwordHash,
  * 
  * @param mixed		true if the update was successful; error message otherwise
  */
-function add_user_google_id(string $username, string $googleId) : mixed {
+function add_user_google_id(string $username, string $googleId): mixed {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -81,7 +81,7 @@ function add_user_google_id(string $username, string $googleId) : mixed {
  * 
  * @return bool		whether or not a user with the given username exists
  */
-function username_exists(string $username) : bool {
+function username_exists(string $username): bool {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -104,7 +104,7 @@ function username_exists(string $username) : bool {
  * 
  * @return bool		whether or not a user with the given email exists.
  */
-function email_exists(string $email) : bool {
+function email_exists(string $email): bool {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -127,7 +127,7 @@ function email_exists(string $email) : bool {
  * 
  * @return bool		whether or not a user with the given googleId exists.
  */
-function google_id_exists(string $id) : bool {
+function google_id_exists(string $id): bool {
 		// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -150,7 +150,7 @@ function google_id_exists(string $id) : bool {
  * 
  * @return bool		whether or not a user with the given discordId exists.
  */
-function discord_id_exists(string $id) : bool {
+function discord_id_exists(string $id): bool {
 		// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -173,7 +173,7 @@ function discord_id_exists(string $id) : bool {
  * 
  * @return array	array containing user information
  */
-function get_user_by_username(string $username) : array {
+function get_user_by_username(string $username): array {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -195,7 +195,7 @@ function get_user_by_username(string $username) : array {
  * 
  * @return array	array containing user information
  */
-function get_user_by_email(string $email) {
+function get_user_by_email(string $email): object {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -217,7 +217,7 @@ function get_user_by_email(string $email) {
  * 
  * @return array	array containing user information
  */
-function get_user_by_google_id(string $id) : ?array {
+function get_user_by_google_id(string $id): ?array {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -239,7 +239,7 @@ function get_user_by_google_id(string $id) : ?array {
  * 
  * @return array	array containing user information
  */
-function get_user_by_discord_id(string $id) : ?array {
+function get_user_by_discord_id(string $id): ?array {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -264,7 +264,7 @@ function get_user_by_discord_id(string $id) : ?array {
  * 
  * @return string	empty string if successful; database error otherwise.
  */
-function update_user(int $id, array $userData) : string {
+function update_user(int $id, array $userData): string {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -297,7 +297,7 @@ function update_user(int $id, array $userData) : string {
  * 
  * @return string	empty string if successful; database error otherwise.
  */
-function save_user_discord_token(int $id, object $token) : string {
+function save_user_discord_token(int $id, object $token): string {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -328,7 +328,7 @@ function save_user_discord_token(int $id, object $token) : string {
  * 
  * @return object	the access token
  */
-function get_user_discord_token(int $id) : object {
+function get_user_discord_token(int $id): object {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -363,7 +363,7 @@ function get_user_discord_token(int $id) : object {
  * 
  * @return bool		whether or not creation of the permission was successful
  */
-function create_permission(string $permission) : bool {
+function create_permission(string $permission): bool {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -385,7 +385,7 @@ function create_permission(string $permission) : bool {
  * 
  * @return bool		whether or not creation of the role was successful
  */
-function create_role(string $role) : bool {
+function create_role(string $role): bool {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -408,7 +408,7 @@ function create_role(string $role) : bool {
  * 
  * @return bool		whether or not the update was successful
  */
-function add_role_permission(string $role, string $permission) : bool {
+function add_role_permission(string $role, string $permission): bool {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -437,7 +437,7 @@ function add_role_permission(string $role, string $permission) : bool {
  * 
  * @return bool		whether or not the update was successful
  */
-function remove_role_permission(string $role, string $permission) : bool {
+function remove_role_permission(string $role, string $permission): bool {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -460,7 +460,7 @@ function remove_role_permission(string $role, string $permission) : bool {
 /**
  * Retrieves an array of permissions that are associated with the given role.
  */
-function get_role_permissions(string $role) : array {
+function get_role_permissions(string $role): array {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -490,7 +490,7 @@ function get_role_permissions(string $role) : array {
 /**
  * Retrieves an array of roles that a user has under the given context.
  */
-function get_user_roles(int $id, string $context) : array {
+function get_user_roles(int $id, string $context): array {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -519,7 +519,7 @@ function get_user_roles(int $id, string $context) : array {
 /**
  * Retrieves an array of all permissions that a user has under a given context.
  */
-function get_user_permissions(int $id, string $context) : array {
+function get_user_permissions(int $id, string $context): array {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -550,7 +550,7 @@ function get_user_permissions(int $id, string $context) : array {
 /**
  * Adds a role to a given user under a given context.
  */
-function add_user_role(int $id, string $context, string $role) : bool {
+function add_user_role(int $id, string $context, string $role): bool {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -574,7 +574,7 @@ function add_user_role(int $id, string $context, string $role) : bool {
 /**
  * Removes a role from a given user under a given context.
  */
-function remove_user_role(int $id, string $context, string $role) : bool {
+function remove_user_role(int $id, string $context, string $role): bool {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
