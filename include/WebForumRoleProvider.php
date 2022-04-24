@@ -18,7 +18,7 @@ class WebForumRoleProvider implements RoleProvider {
 	}
 
 	public function remove_user_role(mixed $userIdentifier, string $context, string $role): bool {
-		return $remove_user_role($userIdentifier, $context, $role);
+		return remove_user_role($userIdentifier, $context, $role);
 	}
 
 }
