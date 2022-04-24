@@ -37,7 +37,7 @@ if (is_logged_in()) {
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
 	<div class="container-lg">
 
-		<a class="navbar-brand" href="/home.php">Internet Forum 3000</a>
+		<a class="navbar-brand" href="/">Internet Forum 3000</a>
 
 		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
 			<span class="navbar-toggler-icon"></span>
@@ -48,16 +48,16 @@ if (is_logged_in()) {
 				<!-- Display login/register buttons if not logged in. -->
 				<?php if (!is_logged_in()): ?>
 				<li class="nav-item ms-auto">
-					<a class="nav-link" href="/login.php">Login</a>
+					<a class="nav-link" href="/login">Login</a>
 				</li>
 				<li class="nav-item">
-					<a class="nav-link" href="/register.php">Register</a>
+					<a class="nav-link" href="/register">Register</a>
 				</li>
 
 				<!-- Otherwise, show profile buttons. -->
 				<?php else: ?>
 				<li class="nav-item ms-auto">
-					<a class="nav-link" href="/profile.php"><?php echo htmlspecialchars(get_user_info()['username']); ?></a>
+					<a class="nav-link" href="/profile"><?php echo htmlspecialchars(get_user_info()['username']); ?></a>
 				</li>
 				<li class="nav-item">
 					<a class="nav-link" href="/logout.php">Logout</a>

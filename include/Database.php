@@ -314,7 +314,10 @@ function save_user_discord_token(int $id, object $token): string {
 			refreshToken=VALUES(refreshToken), 
 			expires=VALUES(expires)'
 	);
-	$stmt->bind_param('issi', $id, $token->getToken(), $token->getRefreshToken(), $token->getExpires());
+	$tokenValue = $token->getToken();
+	$tokenRefresh = $token->getRefreshToken();
+	$tokenExpires = $token->getExpires();
+	$stmt->bind_param('issi', $id, $tokenValue, $tokenRefresh, $tokenExpires);
 
 	// Insert/update the values
 	$stmt->execute();
