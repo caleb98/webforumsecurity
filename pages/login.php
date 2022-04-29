@@ -3,7 +3,7 @@
 require_once('include/Core.php');
 
 $pageTitle = 'Login';
-include_once('include/Header.php');
+include_once(__DIR__ . '/../include/Header.php');
 
 $loginError = $loginError ?? '';
 
@@ -39,7 +39,7 @@ $loginError = $loginError ?? '';
 							<script src="https://accounts.google.com/gsi/client" async defer></script>
 							<div id="g_id_onload" 
 								data-client_id="149051990127-2qmd6mtg33r09c0q0989kp7dolmllfp6.apps.googleusercontent.com"
-								data-login_uri="http://localhost/login/site/google" 
+								data-login_uri="http://localhost/login/google" 
 								data-auto_prompt="false">
 							</div>
 							<div class="g_id_signin"
@@ -52,7 +52,7 @@ $loginError = $loginError ?? '';
 							</div>
 						</div>
 						<div class="col-auto">
-							<button class="btn btn-discord" type="button" onclick="window.location.replace('http://localhost/login/site/discord')">Login with Discord</button>
+							<button class="btn btn-discord" type="button" onclick="window.location.replace('http://localhost/login/discord')">Login with Discord</button>
 						</div>
 					</div>
 				</div>
@@ -63,5 +63,5 @@ $loginError = $loginError ?? '';
 </div>
 
 <?php
-include_once('include/Footer.php');
+include_once(__DIR__ . '/../include/Footer.php');
 ?>

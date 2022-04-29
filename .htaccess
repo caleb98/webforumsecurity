@@ -1,6 +1,5 @@
-DirectoryIndex home.php
-
 RewriteEngine on
 RewriteRule ^([a-zA-Z]+)$ mapper.php?control=$1 [QSA]
-RewriteRule ^([a-zA-Z]+)/([a-zA-Z]+)$ mapper.php?control=$1&context=$2 [QSA]
-RewriteRule ^([a-zA-Z]+)/([a-zA-Z]+)/([a-zA-Z]+)$ mapper.php?control=$1&context=$2&name=$3 [QSA]
+RewriteRule ^([a-zA-Z]+)/([a-zA-Z]+)$ mapper.php?control=$1&function=$2 [QSA]
+
+RewriteRule ^$ /forum [QSA]

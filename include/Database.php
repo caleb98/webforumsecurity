@@ -29,10 +29,10 @@ function get_db_connection(): mysqli {
  * @param string	$password	new user's hashed password
  * @param string	$googleId	new user's googleId (if applicable)
  * 
- * @return mixed	true if insert was successful; error message otherwise.
+ * @return string	empty string if successful; error message otherwise.
  */
 function insert_user(string $username, string $email, ?string $passwordHash, 
-	string $googleId = null, string $discordId = null): mixed {
+	string $googleId = null, string $discordId = null): string {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -45,11 +45,25 @@ function insert_user(string $username, string $email, ?string $passwordHash,
 		VALUES (?, ?, ?, ?, ?)'
 	);
 	$stmt->bind_param('sssss', $username, $email, $passwordHash, $googleId, $discordId);
-	if ($stmt->execute()) {
-		return true;
-	} else {
+	$stmt->execute();
+
+	$conn->close();
+
+	if ($stmt->error) {
 		return $stmt->error;
 	}
+
+	// Add the default user role to this user
+	$userId = get_user_by_username($username)['id'];
+	$error = add_user_role($userId, '/^$/', 'USER');
+
+	if($error) {
+		return $error;
+	}
+
+	// Add profile permissions to this user
+	$error = add_user_role($userId, '/^user\.' . $username . '$/', 'ACCOUNT_ADMIN');
+	return $error;
 }
 
 /**
@@ -502,18 +516,23 @@ function get_user_roles(int $id, string $context): array {
 
 	// Create statement and execute
 	$stmt = $conn->prepare(<<<STR
-		SELECT role FROM user_roles
+		SELECT role, context FROM user_roles
 		JOIN roles ON user_roles.roleId = roles.id
-		WHERE userId = ? AND context = ?;
+		WHERE userId = ?;
 		STR);
-	$stmt->bind_param('is', $id, $context);
+	$stmt->bind_param('i', $id);
 	$stmt->execute();
 	$result = $stmt->get_result();
 
 	// Run through all the rows and collect the roles.
 	$roles = [];
 	while($row = $result->fetch_assoc()) {
-		array_push($roles, $row['role']);
+		// If the role is not already present and the 
+		// context pattern from the db matches the current
+		// operating context, add the role.
+		if(!in_array($roles, $row['role']) && preg_match($row['context'], $context)) {
+			$roles[] = $row['role'];
+		}
 	}
 
 	return $roles;
@@ -531,20 +550,25 @@ function get_user_permissions(int $id, string $context): array {
 
 	// Create statement and execute
 	$stmt = $conn->prepare(<<<STR
-		SELECT DISTINCT permission FROM user_roles
+		SELECT DISTINCT permission, context FROM user_roles
 		JOIN roles ON user_roles.roleId = roles.id
 		JOIN role_permissions ON user_roles.roleId = role_permissions.roleId
 		JOIN permissions ON role_permissions.permissionId = permissions.id
-		WHERE userId = ? AND context = ?;
+		WHERE userId = ?;
 		STR);
-	$stmt->bind_param('is', $id, $context);
+	$stmt->bind_param('i', $id);
 	$stmt->execute();
 	$result = $stmt->get_result();
 
 	// Run through all the rows and collect the permissions.
 	$permissions = [];
 	while($row = $result->fetch_assoc()) {
-		array_push($permissions, $row['permission']);
+		// If the permission is not already present and the
+		// context pattern from the db matches the current
+		// operating context, add the permission.
+		if(!in_array($row['permission'], $permissions) && preg_match($row['context'], $context)) {
+			$permissions[] = $row['permission'];
+		}
 	}
 
 	return $permissions;
@@ -552,8 +576,14 @@ function get_user_permissions(int $id, string $context): array {
 
 /**
  * Adds a role to a given user under a given context.
+ * 
+ * @param int		$id			the id of the user to add the role to
+ * @param string	$context	a pattern for contexts in which this role should be applied
+ * @param string	$role		the role to add
+ * 
+ * @return string	empty string if successful; error message otherwise
  */
-function add_user_role(int $id, string $context, string $role): bool {
+function add_user_role(int $id, string $context, string $role): string {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -571,11 +601,17 @@ function add_user_role(int $id, string $context, string $role): bool {
 	$stmt->bind_param('iss', $id, $context, $role);
 	$stmt->execute();
 
-	return $stmt->error === '';
+	return $stmt->error;
 }
 
 /**
  * Removes a role from a given user under a given context.
+ * 
+ * @param int		$id			the id of the user to remove the role from
+ * @param string	$context	the pattern for contexts to be removes
+ * @param string	$role		the role that should be removed for the given context pattern
+ * 
+ * @return bool		whether or not the operation was successful
  */
 function remove_user_role(int $id, string $context, string $role): bool {
 	// Connect to the database
@@ -596,6 +632,52 @@ function remove_user_role(int $id, string $context, string $role): bool {
 	$stmt->execute();
 
 	return $stmt->error === '';
+}
+
+/**
+ * Creates a new forum category.
+ * 
+ * @param string	$name		the name of the new category
+ * @param bool		$isPrivate	whether or not the category is private and only visible to users with proper roles
+ * 
+ * @return string	empty string if successful; error message otherwise
+ */
+function create_forum_category(string $name, bool $isPrivate = false): string {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	// Create statement and execute
+	$stmt = $conn->prepare('INSERT IGNORE INTO categories (name, isPrivate) VALUES (?, ?);');
+	$stmt->bind_param('si', $name, $isPrivate);
+	$stmt->execute();
+
+	return $stmt->error;
+}
+
+/**
+ * Retrieves an array of all forum categories.
+ * 
+ * @return array	array containing all forum category information
+ */
+function get_forum_categories(): array {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	// Create statement
+	$result = $conn->query('SELECT * FROM categories;');
+	$categories = [];
+
+	while($category = $result->fetch_assoc()) {
+		$categories[] = $category;
+	}
+
+	return $categories;
 }
 
 ?>

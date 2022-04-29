@@ -56,8 +56,8 @@ function login(array $user, string $redirect = '/') : void {
  * 
  * @return array	user info
  */
-function get_user_info() : array {
-	return $_SESSION['user'];
+function get_user_info() : ?array {
+	return $_SESSION['user'] ?? null;
 }
 
 

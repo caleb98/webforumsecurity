@@ -1,8 +1,8 @@
 <?php
 
-require_once(__DIR__ . '/Action.php');
 require_once(__DIR__ . '/RoleProvider.php');
 require_once(__DIR__ . '/SecurityException.php');
+require_once(__DIR__ . '/ControllerFunction.php');
 
 abstract class Controller {
 
@@ -13,165 +13,178 @@ abstract class Controller {
 	private RoleProvider $roleProvider;
 
 	/**
-	 * The map of action names to actions.
+	 * The function map for GET requests.
 	 */
-	private array $actionMap = [];
+	private array $getMap = [];
 
 	/**
-	 * The map of resource names to resources.
+	 * The function map for POST requests.
 	 */
-	private array $resourceMap = [];
+	private array $postMap = [];
+
+	/**
+	 * The name of the default GET function.
+	 */
+	private ?string $defaultGetMapping;
+
+	/**
+	 * The name of the default POST function.
+	 */
+	private ?string $defaultPostMapping;
 
 	/**
 	 * Creates a new controller that collects roles using the given provider.
 	 * 
-	 * @param RoleProvider	$roleProvider	the provider of roles for this controller
+	 * @param RoleProvider	$roleProvider		the provider of roles for this controller
+	 * @param string		$defaultGetMapping	the name of the default GET function
+	 * @param string		$defaultPostMapping	the name of the default POST function
 	 */
-	public function __construct(RoleProvider $roleProvider) {
+	public function __construct(RoleProvider $roleProvider, ?string $defaultGetMapping = null, ?string $defaultPostMapping = null) {
 		$this->roleProvider = $roleProvider;
+		$this->defaultGetMapping = $defaultGetMapping;
+		$this->defaultPostMapping = $defaultPostMapping;
 	}
 
 	/**
-	 * Adds a mapping of an action name to an action.
+	 * Sets the default GET function for this controller.
 	 * 
-	 * @param string	$actionName		the name of the action
-	 * @param Action	$action			the action to associate with this name
+	 * @param string	$functionName	the name of the default GET function
 	 */
-	public function add_action_mapping(string $actionName, Action $action) {
-		$this->actionMap[$actionName] = $action;
+	public function set_default_get_mapping(string $functionName): void {
+		$this->defaultGetMapping = $functionName;
 	}
 
 	/**
-	 * Attempts to execute a given action under a given context using a set of arguments.
-	 * Throws an exception if no action with the given name exists.
+	 * Sets the default POST function for this controller.
 	 * 
-	 * @param string	$actionName		the name of the action to execute
-	 * @param string	$context		the context to execute the action within
-	 * @param array		$args			arguments for the action's execution
-	 * 
-	 * @return mixed	the return value of the action
+	 * @param string	$functionName	the name of the default POST function
 	 */
-	public function run_action(string $actionName, string $context, array $args): mixed {
-		// Throw exception if no mapping exists for this action.
-		if(!isset($this->actionMap[$actionName])) {
-			throw new UnexpectedValueException("No mapping found for action: ${actionName}");
-		}
+	public function set_default_post_mapping(string $functionName): void {
+		$this->defaultPostMapping = $functionName;
+	}
 
-		// Check user permissions with the given context
-		if(!$this->action_runnable($actionName, $context)) {
-			throw new SecurityException('User does not have permissions for this action.');
-		}
-
-		// Execute the action
-		return $this->actionMap[$actionName]->execute($context, $args);
+	/**
+	 * Adds a get mapping for this controller.
+	 * 
+	 * @param string	$functionName	the name of the mapping
+	 * @param Action	$function		the function to map to the name
+	 */
+	public function add_get_mapping(string $functionName, ControllerFunction $function): void {
+		$this->getMap[$functionName] = $function;
 	}
 
 	/**
 	 * Adds a mapping of a resource name to an resource.
 	 * 
-	 * @param string	$resourceName	the name of the resource
-	 * @param Resource	$resource		the resource to associate with this name
+	 * @param string	$functionName	the name of the mapping
+	 * @param Resource	$function		the function to map to the name
 	 */
-	public function add_resource_mapping(string $resourceName, Resource $resource): void {
-		$this->resourceMap[$resourceName] = $resource;
+	public function add_post_mapping(string $functionName, ControllerFunction $function): void {
+		$this->postMap[$functionName] = $function;
 	}
 
 	/**
-	 * Displays a resource to the user under the given context.
+	 * Attempts to execute a given GET request action using a set of arguments.
+	 * Throws an exception if no GET mapping exists for the given name.
 	 * 
-	 * @param string	$resourceName	the anme of the resource
-	 * @param string	$context		the context the resource is being accessed under
-	 * @param array		$args			arguments for the display of the resource
+	 * @param string	$functionName	the name of the function to execute
+	 * @param array		$args			arguments for the function's execution
 	 */
-	public function show_resource(string $resourceName, string $context, array $args): void {
+	public function run_get(string $functionName, array $args): void {
+		// Throw exception if no mapping exists for this function.
+		if(!isset($this->getMap[$functionName])) {
+			throw new UnexpectedValueException("No GET mapping found for function: ${functionName}");
+		}
+
+		// Determine the context that the function should run under
+		$function = $this->getMap[$functionName];
+		$context = $function->resolve_context($args);
+
+		// If the function has a permission it requires to run, check the permissions
+		if($function->permission !== null) {
+			$userId = $this->get_user_identifier();
+			$perms = $this->roleProvider->get_user_permissions($userId, $context);
+
+			// If they don't have the proper permission, deny access.
+			if(!in_array($function->permission, $perms)) {
+				throw new SecurityException("Access denied.");
+			}
+		}
+
+		// Execute the action
+		$this->getMap[$functionName]->run($context, $args);
+	}
+
+	/**
+	 * Attempts to execute a given POST request action using a set of arguments.
+	 * Throws an exception if no POST mapping exists for the given name.
+	 * 
+	 * @param string	$functionName	the name of the function to execute
+	 * @param array		$args			arguments for the function's execution
+	 */
+	public function run_post(string $functionName, array $args): void {
 		// Throw exception if no mapping exists for this resource.
-		if(!isset($this->resourceMap[$resourceName])) {
-			throw new UnexpectedValueException("No mapping found for resource: ${resourceName}");
+		if(!isset($this->postMap[$functionName])) {
+			throw new UnexpectedValueException("No POST mapping found for resource: ${functionName}");
 		}
 
-		// Check user permissions with the given context
-		if(!$this->resource_accessible($resourceName, $context)) {
-			throw new SecurityException('User does not have permissions to access this resource.');
+		// Determine the context that the function should run under
+		$function = $this->postMap[$functionName];
+		$context = $function->resolve_context($args);
+
+		// If the function has a permission it requires to run, check the permissions
+		if($function->permission !== null) {
+			$userId = $this->get_user_identifier();
+			$perms = $this->roleProvider->get_user_permissions($userId, $context);
+
+			// If they don't have the proper permission, deny access.
+			if(!in_array($function->permission, $perms)) {
+				throw new SecurityException("Access denied.");
+			}
 		}
 
-		$this->resourceMap[$resourceName]->show($context, $args);
+		// Run the function
+		$this->postMap[$functionName]->run($context, $args);
 	}
 
 	/**
-	 * Returns whether or not the given action is runnable for the current user in the given context.
-	 * Will also return false if no action with the given name exists.
+	 * Runs this controller's default GET mapping function.
 	 * 
-	 * @param string	$actionName		the name of the action to check
-	 * @param string	$context		the context to check the action with
-	 * 
-	 * @return bool		whether or not the given action can be run in the context by the current user
+	 * @param array		$args	the arguments to pas to the default function
 	 */
-	public function action_runnable(string $actionName, string $context): bool {
-		// Check that the action exists first
-		if(!isset($this->actionMap[$actionName])) {
-			return false;
-		}
-
-		// See if permissions are required
-		$action = $this->actionMap[$actionName];
-		if($action->permission === null) {
-			return true;
-		}
-
-		// Collect user permissions under the context
-		$permissions = $this->roleProvider->get_user_permissions(
-			$this->get_user_identifier(), $context
-		);
-
-		// Check required permission in array
-		return in_array($action->permission, $permissions);
-	}	
-
-	/**
-	 * Returns whether or not the given action is available to the current user in the given context.
-	 * Will also return false if no resource with the given name exists.
-	 */
-	public function resource_accessible(string $resourceName, string $context): bool {
-		// Check that the resource exists first
-		if(!isset($this->resourceMap[$resourceName])) {
-			return false;
-		}
-
-		// See if permissions are required
-		$resource = $this->resourceMap[$resourceName];
-		if($resource->permission === null) {
-			return true;
-		}
-
-		// Collect user permissions under the context
-		$permissions = $this->roleProvider->get_user_permissions(
-			$this->get_user_identifier(), $context
-		);
-
-		// Check required permission in array
-		return in_array($resource->permission, $permissions);
+	public function run_default_get(array $args): void {
+		$this->run_get($this->defaultGetMapping, $args);
 	}
 
 	/**
-	 * Checks whether a given actions exists.
+	 * Runs this controller's default POST mapping function.
 	 * 
-	 * @param string	$actionName		the action to checl
-	 * 
-	 * @return bool		whether or not the action exists
+	 * @param array		$args	the arguments to pas to the default function
 	 */
-	public function action_exists(string $actionName): bool {
-		return isset($this->actionMap[$actionName]);
+	public function run_default_post(array $args): void {
+		$this->run_post($this->defaultPostMapping, $args);
 	}
 
 	/**
-	 * Checks whether a given resource exists.
+	 * Checks whether a given POST function mapping eixsts
 	 * 
-	 * @param string	$resourceName	the resource to check
+	 * @param string	$functionName	the name of the function to check
 	 * 
-	 * @return bool		whether or not the resource exists
+	 * @return bool		whether or not the mapping exists
 	 */
-	public function resource_exists(string $resourceName): bool {
-		return isset($this->resourceMap[$resourceName]);
+	public function post_mapping_exists(string $functionName): bool {
+		return isset($this->postMap[$functionName]);
+	}
+
+	/**
+	 * Checks whether a given GET function mapping exists.
+	 * 
+	 * @param string	$functionName	the name of the function to check
+	 * 
+	 * @return bool		whether or not the mapping exists
+	 */
+	public function get_mapping_exists(string $functionName): bool {
+		return isset($this->getMap[$functionName]);
 	}
 
 	/**

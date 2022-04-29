@@ -1,9 +1,9 @@
 <?php
 
-require_once('include/Core.php');
+require_once(__DIR__ . '/../include/Core.php');
 
 $pageTitle = 'Register';
-include_once('include/Header.php');
+include_once(__DIR__ . '/../include/Header.php');
 
 $alternateRegister = $alternateRegister ?? false;
 $registerError = $registerError ?? '';
@@ -15,7 +15,7 @@ $registerError = $registerError ?? '';
 		<div class="col-6">
 
 			<!-- Registration Form -->
-			<form action="<?php echo $alternateRegister ? '/register/site/alternate' : '/register' ?>" method="post">
+			<form action="<?php echo $alternateRegister ? '/register/alternate' : '/register' ?>" method="post">
 				<h1>Register</h1>
 
 				<!-- Show error if present -->
@@ -50,7 +50,7 @@ $registerError = $registerError ?? '';
 							<script src="https://accounts.google.com/gsi/client" async defer></script>
 							<div id="g_id_onload" 
 								data-client_id="149051990127-2qmd6mtg33r09c0q0989kp7dolmllfp6.apps.googleusercontent.com"
-								data-login_uri="http://localhost/register/site/google" 
+								data-login_uri="http://localhost/register/google" 
 								data-auto_prompt="false">
 							</div>
 							<div class="g_id_signin"
@@ -63,7 +63,7 @@ $registerError = $registerError ?? '';
 							</div>
 						</div>
 						<div class="col-auto">
-							<button class="btn btn-discord" type="button" onclick="window.location.replace('http://localhost/register/site/discord')">Register with Discord</button>
+							<button class="btn btn-discord" type="button" onclick="window.location.replace('http://localhost/register/discord')">Register with Discord</button>
 						</div>
 					</div>
 				</div>
@@ -86,5 +86,5 @@ $registerError = $registerError ?? '';
 </div>
 
 <?php
-include_once('include/Footer.php');
+include_once(__DIR__ . '/../include/Footer.php')
 ?>
