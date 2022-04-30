@@ -22,10 +22,11 @@ abstract class ControllerFunction {
 	/**
 	 * Runs the function.
 	 * 
-	 * @param string	$context	the context to run the function under
-	 * @param array		$args		associative array of function arguments
+	 * @param mixed		$userIdentifier		the identifier for the current user
+	 * @param string	$context			the context to run the function under
+	 * @param array		$args				associative array of function arguments
 	 */
-	abstract public function run(string $context, array $args): void;
+	abstract public function run(mixed $userIdentifier, string $context, array $args): void;
 
 	/**
 	 * Determines the context this action is being run under given

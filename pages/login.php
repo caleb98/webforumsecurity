@@ -1,7 +1,5 @@
 <?php
 
-require_once('include/Core.php');
-
 $pageTitle = 'Login';
 include_once(__DIR__ . '/../include/Header.php');
 
@@ -14,7 +12,7 @@ $loginError = $loginError ?? '';
 		<div class="col-6">
 
 			<!-- Login Form -->
-			<form action="login" method="post">
+			<form action="/login" method="post">
 				<h1>Login</h1>
 				<?php if($loginError) : ?>
 					<div class='text-danger'>

@@ -4,7 +4,7 @@ require_once(__DIR__ . '/../../ControllerFunction.php');
 
 class GoogleLoginFunction extends ControllerFunction {
 
-	public function run(string $context, array $args): void {
+	public function run(mixed $userIdentifier, string $context, array $args): void {
 		// Decode the JWT
 		$client = create_google_api_client();
 		$payload = $client->verifyIdToken($args['credential']);

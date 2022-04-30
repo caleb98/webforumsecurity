@@ -4,7 +4,7 @@ require_once(__DIR__ . '/../../ControllerFunction.php');
 
 class GoogleRegisterFunction extends ControllerFunction {
 
-	public function run(string $context, array $args): void {
+	public function run(mixed $userIdentifier, string $context, array $args): void {
 		// Remove any remaining discord registration info to prevent
 		// overlap between two registration flows.
 		unset($_SESSION['discordId']);

@@ -4,7 +4,7 @@ require_once(__DIR__ . '/../../ControllerFunction.php');
 
 class DiscordLoginFunction extends ControllerFunction {
 
-	public function run(string $context, array $args): void {
+	public function run(mixed $userIdentifier, string $context, array $args): void {
 		// Create the discord provider
 		$provider = create_discord_provider('http://localhost/login/discord');
 

@@ -4,7 +4,7 @@ require_once(__DIR__ . '/../../ControllerFunction.php');
 
 class HandleAlternateRegisterFunction extends ControllerFunction {
 
-	public function run(string $context, array $args): void {
+	public function run(mixed $userIdentifier, string $context, array $args): void {
 		// Set alternate registration to true in case they input something invalid
 		$alternateRegister = true;
 

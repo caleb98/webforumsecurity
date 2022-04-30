@@ -530,7 +530,7 @@ function get_user_roles(int $id, string $context): array {
 		// If the role is not already present and the 
 		// context pattern from the db matches the current
 		// operating context, add the role.
-		if(!in_array($roles, $row['role']) && preg_match($row['context'], $context)) {
+		if(!in_array($row['role'], $roles) && preg_match($row['context'], $context)) {
 			$roles[] = $row['role'];
 		}
 	}
@@ -681,9 +681,16 @@ function get_forum_categories(): array {
 }
 
 /**
+ * Creates a new forum thread.
  * 
+ * @param string	$category		the category to add the thread to
+ * @param string	$postName		the title of the thread
+ * @param string	$postText		the text of the post
+ * @param int		$userId			the id of the user making the post
+ * 
+ * @return string|int		error message if an error occurred; id of the new thread otherwise
  */
-function add_forum_thread(string $category, string $postName, string $postText, int $userId): string {
+function add_forum_thread(string $category, string $postName, string $postText, int $userId): string|int {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -716,10 +723,31 @@ function add_forum_thread(string $category, string $postName, string $postText, 
 	$stmt->bind_param('sii', $postText, $threadId, $userId);
 	$stmt->execute();
 
-	return $stmt->error;
+	if($stmt->error) {
+		return $stmt->error;
+	}
+	else {
+		return $threadId;
+	}
 }
 
-function add_thread_comment(int $threadId, int $userId, string $text): string {
+/**
+ * Adds a reply/comment to a given thread in a category.
+ * 
+ * @param string	$category		the category the thread is in
+ * @param int		$threadId		the id of the thread being replied to
+ * @param int		$userId			the id of the user replying
+ * @param string	$text			reply contents
+ * 
+ * @return string	empty string if successful; error text otherwise
+ */
+function add_thread_comment(string $category, int $threadId, int $userId, string $text): string {
+	// First, check that the given threadId exists within the category
+	$threadName = get_thread_name($category, $threadId);
+	if($threadName === null) {
+		return 'Invalid thread/category.';
+	}
+
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -767,7 +795,7 @@ function get_category_threads(string $category, int $pageSize, int $pageNum): ar
 		JOIN users AS recentUser ON recentUser.id = comments.commenterId
 		WHERE categoryId = (SELECT id FROM categories WHERE name = ?)
 		GROUP BY threads.id
-		ORDER BY comments.date DESC
+		ORDER BY replyDate DESC
 		LIMIT ? OFFSET ?;
 		STR
 	);
@@ -818,6 +846,14 @@ function get_thread_name(string $category, int $threadId): ?string {
 	return $result->fetch_assoc()['title'];
 }
 
+/**
+ * Retrieves all replies for a given thread in a category.
+ * 
+ * @param string	$category	the name of the category
+ * @param int		$threadId	the id of the thread
+ * 
+ * @return array|string		array of replies if successful; error string otherwise
+ */
 function get_thread_replies(string $category, int $threadId): array|string {
 	// Connect to the database
 	$conn = get_db_connection();

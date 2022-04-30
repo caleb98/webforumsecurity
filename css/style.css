@@ -10,9 +10,13 @@
 	border-radius: 10px;
 }
 
-.thread-reply-text {
+.thread-reply-box {
 	background-color: #EEEEEE;
 	border-radius: 10px;
 	border-color: black;
 	border-width: 0px 0px 0px 1px;
+}
+
+.thread-reply-text {
+	white-space: pre-wrap;
 }

@@ -1,6 +1,7 @@
 <?php
 
 require_once('include/Core.php');
+require_once('include/Database.php');
 require_once('include/controllers/login/LoginController.php');
 require_once('include/controllers/register/RegisterController.php');
 require_once('include/controllers/forum/ForumViewController.php');
@@ -11,10 +12,6 @@ $controllers = [
 	'register' => new RegisterController(),
 	'forum' => new ForumViewController(),
 ];
-
-// echo '<pre>';
-// var_dump($controllers['login']);
-// echo '</pre>';
 
 // Get controller info
 $controlName = $_GET['control'];

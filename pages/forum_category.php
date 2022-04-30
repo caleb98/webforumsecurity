@@ -4,13 +4,14 @@ $pageTitle = 'Forum > ' . ucwords(($category ?? 'View'));
 include_once(__DIR__ . '/../include/Header.php');
 
 $threads = $threads ?? [];
+$showPostButton = $showPostButton ?? false;
 
 ?>
 
 <div class="container mt-3">
-	<div class="row justify-content-center">
+	<div class="row justify-content-center mb-3">
 		<div class="col-8">
-			<table class="table">
+			<table class="table table-hover">
 				<thead>
 					<tr>
 						<th scope="col" class="text-center">Thread</th>
@@ -36,6 +37,13 @@ $threads = $threads ?? [];
 			</table>
 		</div>
 	</div>
+	<?php if($showPostButton) : ?>
+		<div class="row justify-content-center">
+			<div class="col-8">
+				<a href="/forum/post?category=<?php echo htmlspecialchars($category);?>" class="btn btn-primary">New Post</a>
+			</div>
+		</div>
+	<?php endif; ?>
 </div>
 
 <?php

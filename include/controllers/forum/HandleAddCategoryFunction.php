@@ -8,7 +8,7 @@ class HandleAddCategoryFunction extends ControllerFunction {
 		parent::__construct('category.add');
 	}
 
-	public function run(string $context, array $args): void {
+	public function run(mixed $userIdentifier, string $context, array $args): void {
 		// Check that the name was provided.
 		if(!isset($args['categoryName']) || $args['categoryName'] === '') {
 			$createError = 'Please enter a category name.';
@@ -17,11 +17,11 @@ class HandleAddCategoryFunction extends ControllerFunction {
 		}
 
 		// Grab the name and isPrivate field
-		$categoryName = strtolower($args['categoryName']);
+		$categoryName = trim(strtolower($args['categoryName']));
 		$isPrivate = isset($args['isPrivate']);
 
 		// Check that the category name is valid
-		if(!preg_match('/[a-z0-9 ]/i', $categoryName)) {
+		if(!preg_match('/[a-z0-9 ]+/i', $categoryName)) {
 			$createError = 'Invalid category name. Use only alphanumeric characters.';
 			include(__DIR__ . '/../pages/create_category.php');
 			die();

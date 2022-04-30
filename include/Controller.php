@@ -112,7 +112,7 @@ abstract class Controller {
 		}
 
 		// Execute the action
-		$this->getMap[$functionName]->run($context, $args);
+		$this->getMap[$functionName]->run($this->get_user_identifier(), $context, $args);
 	}
 
 	/**
@@ -144,7 +144,7 @@ abstract class Controller {
 		}
 
 		// Run the function
-		$this->postMap[$functionName]->run($context, $args);
+		$this->postMap[$functionName]->run($this->get_user_identifier(), $context, $args);
 	}
 
 	/**

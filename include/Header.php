@@ -21,9 +21,18 @@ require_once('include/Security.php');
 <body>
 
 <?php
+$showAdminButton = false;
+
 // Check if the user is signed in and if they need to update their password
 if (is_logged_in()) {
 	$user = get_user_info();
+
+	if($user) {
+		// Look for ADMIN in the global context
+		$roles = get_user_roles($user['id'], '');
+		$showAdminButton = in_array('ADMIN', $roles);
+	}
+
 	if (isset($user['password']) && password_needs_update($user['password'])) {
 		echo 'password must be updated';
 	}
@@ -49,21 +58,26 @@ if (is_logged_in()) {
 			<ul class="navbar-nav ms-auto mb-2 mb-lg-0">
 				<!-- Display login/register buttons if not logged in. -->
 				<?php if (!is_logged_in()): ?>
-				<li class="nav-item ms-auto">
-					<a class="nav-link" href="/login">Login</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link" href="/register">Register</a>
-				</li>
+					<li class="nav-item ms-auto">
+						<a class="nav-link" href="/login">Login</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="/register">Register</a>
+					</li>
 
 				<!-- Otherwise, show profile buttons. -->
 				<?php else: ?>
-				<li class="nav-item ms-auto">
-					<a class="nav-link" href="/profile"><?php echo htmlspecialchars(get_user_info()['username']); ?></a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link" href="/logout.php">Logout</a>
-				</li>
+					<li class="nav-item ms-auto">
+						<a class="nav-link" href="/profile"><?php echo htmlspecialchars(get_user_info()['username']); ?></a>
+					</li>
+					<?php if ($showAdminButton) : ?>
+						<li class="nav-item">
+							<a class="nav-link" href="/admin">Admin</a>
+						</li>
+					<?php endif; ?>
+					<li class="nav-item">
+						<a class="nav-link" href="/logout.php">Logout</a>
+					</li>
 				<?php endif; ?>
 			</ul>
 		</div>

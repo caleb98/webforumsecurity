@@ -9,7 +9,7 @@ require_once(__DIR__ . '/../../ControllerFunction.php');
 
 class HandleRegisterFunction extends ControllerFunction {
 
-	public function run(string $context, array $args): void {
+	public function run(mixed $userIdentifier, string $context, array $args): void {
 		// Get registration information
 		$username = $args['username'];
 		$email = $args['email'];
