@@ -10,6 +10,10 @@ class WebForumRoleProvider implements RoleProvider {
 	}
 
 	public function get_user_permissions(mixed $userIdentifier, string $context): array {
+		// Non-logged in users have the view permission in the global context
+		if($userIdentifier == -1 && $context === '') {
+			return ['category.view'];
+		}
 		return get_user_permissions($userIdentifier, $context);
 	}
 

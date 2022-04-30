@@ -680,4 +680,177 @@ function get_forum_categories(): array {
 	return $categories;
 }
 
+/**
+ * 
+ */
+function add_forum_thread(string $category, string $postName, string $postText, int $userId): string {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	// Create the statement to make the thread
+	$stmt = $conn->prepare(<<<STR
+		INSERT INTO threads (title, categoryId, creatorId)
+		VALUES (
+			?, 
+			(SELECT id FROM categories WHERE name = ?), 
+			?);
+		STR
+	);
+	$stmt->bind_param('ssi', $postName, $category, $userId);
+	$stmt->execute();
+
+	if($stmt->error) {
+		return $stmt->error;
+	}
+
+	// Add the initial post text
+	$threadId = $conn->insert_id;
+	$stmt = $conn->prepare(<<<STR
+		INSERT INTO comments (text, threadId, commenterId)
+		VALUES (?, ?, ?)
+		STR
+	);
+	$stmt->bind_param('sii', $postText, $threadId, $userId);
+	$stmt->execute();
+
+	return $stmt->error;
+}
+
+function add_thread_comment(int $threadId, int $userId, string $text): string {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	// Create statement
+	$stmt = $conn->prepare('INSERT INTO comments (text, threadId, commenterId) VALUES (?, ?, ?);');
+	$stmt->bind_param('sii', $text, $threadId, $userId);
+	$stmt->execute();
+	return $stmt->error;	
+}
+
+/**
+ * Retrieves a set of threads for the category.
+ * 
+ * @param string	$category		the category to retrieve threads for
+ * @param int		$pageSize		number of threads to return
+ * @param int		$pageNum		the page of threads to retrieve
+ * 
+ * @return array|string		array of forum post data if successful; error string otherwise
+ */
+function get_category_threads(string $category, int $pageSize, int $pageNum): array|string {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	// Calculate offset for pagination
+	$offset = $pageSize * $pageNum;
+
+	// Create statement
+	$stmt = $conn->prepare(<<<STR
+		SELECT
+			threads.id AS threadId,
+			threads.title AS title, 
+			creatorUser.username AS creator, 
+			threads.date AS createDate,
+			recentUser.username AS replyUser,
+			MAX(comments.date) AS replyDate
+		FROM threads
+		JOIN users AS creatorUser ON creatorUser.id = threads.creatorId
+		JOIN comments ON comments.threadId = threads.id
+		JOIN users AS recentUser ON recentUser.id = comments.commenterId
+		WHERE categoryId = (SELECT id FROM categories WHERE name = ?)
+		GROUP BY threads.id
+		ORDER BY comments.date DESC
+		LIMIT ? OFFSET ?;
+		STR
+	);
+	$stmt->bind_param('sii', $category, $pageSize, $offset);
+	$stmt->execute();
+
+	if($stmt->error) {
+		return $stmt->error;
+	}
+
+	$result = $stmt->get_result();
+
+	// Loop through results and combine
+	$threads = [];
+	while($row = $result->fetch_assoc()) {
+		$threads[] = $row;
+	}
+
+	return $threads;
+}
+
+/**
+ * Retrieves the name of a thread in a category with a given id.
+ * 
+ * @param string	$category	the category the thread is in
+ * @param int		$threadId	the id of the thread
+ * 
+ * @return ?string	the name of the thread; null if no thread with this id exists in the given category
+ */
+function get_thread_name(string $category, int $threadId): ?string {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	// Run statement
+	$stmt = $conn->prepare(
+		'SELECT title FROM threads WHERE id = ? AND categoryId = (SELECT id FROM categories WHERE name = ?)');
+	$stmt->bind_param('is', $threadId, $category);
+	$stmt->execute();
+
+	// Grab resulting thread name
+	$result = $stmt->get_result();
+	if($result->num_rows != 1) {
+		return null;
+	}
+	return $result->fetch_assoc()['title'];
+}
+
+function get_thread_replies(string $category, int $threadId): array|string {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	// Create the statement
+	$stmt = $conn->prepare(<<<STR
+		SELECT users.username AS user, comments.text AS text, comments.date AS date FROM threads
+		JOIN categories ON categories.id = threads.categoryId
+		JOIN comments ON comments.threadId = threads.id
+		JOIN users ON users.id = comments.commenterId
+		WHERE threads.id = ? AND categories.id = (SELECT id FROM categories WHERE name = ?)
+		ORDER BY comments.date;
+		STR
+	);
+	$stmt->bind_param('is', $threadId, $category);
+	$stmt->execute();
+
+	if($stmt->error) {
+		return $stmr->error;
+	}
+
+	// Get results and add to array
+	$result = $stmt->get_result();
+	$replies = [];
+
+	while($row = $result->fetch_assoc()) {
+		$replies[] = $row;
+	}
+
+	return $replies;
+}
+
 ?>

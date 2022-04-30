@@ -3,20 +3,6 @@
 require_once('include/Core.php');
 require_once('include/Security.php');
 
-// Check if the user is signed in and if they need to update their password
-if (is_logged_in()) {
-	$user = get_user_info();
-	if (isset($user['password']) && password_needs_update($user['password'])) {
-		echo 'password must be updated';
-	}
-	elseif (isset($user['password'])) {
-		echo 'password is okay';
-	}
-	else {
-		echo 'no check for password - account made via 3rd party';
-	}
-}
-
 ?>
 
 <!DOCTYPE html>
@@ -33,6 +19,22 @@ if (is_logged_in()) {
 	</title>
 </head>
 <body>
+
+<?php
+// Check if the user is signed in and if they need to update their password
+if (is_logged_in()) {
+	$user = get_user_info();
+	if (isset($user['password']) && password_needs_update($user['password'])) {
+		echo 'password must be updated';
+	}
+	elseif (isset($user['password'])) {
+		echo 'password is okay';
+	}
+	else {
+		echo 'no check for password - account made via 3rd party';
+	}
+}
+?>
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
 	<div class="container-lg">

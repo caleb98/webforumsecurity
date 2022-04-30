@@ -3,4 +3,16 @@
 	border-radius: 2px;
 	border-color: #5d70b3;
 	border-width: 1px;
-} 
+}
+
+.thread-reply-profile {
+	background-color: #EEEEEE;
+	border-radius: 10px;
+}
+
+.thread-reply-text {
+	background-color: #EEEEEE;
+	border-radius: 10px;
+	border-color: black;
+	border-width: 0px 0px 0px 1px;
+}

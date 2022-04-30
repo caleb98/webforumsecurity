@@ -22,7 +22,7 @@ $categories = $categories ?? [];
 					<?php foreach($categories as $category) : ?>
 						<tr>
 							<td class="text-center">
-								<a href="/forum/view/<?php echo htmlspecialchars($category['name']);?>">
+								<a href="/forum/view?category=<?php echo htmlspecialchars($category['name']);?>">
 									<?php echo htmlspecialchars(ucwords($category['name'])); ?>
 								</a>
 							</td>
