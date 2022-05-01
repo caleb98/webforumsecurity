@@ -17,6 +17,14 @@ class HandleLoginFunction extends ControllerFunction {
 
 			// Verify password
 			if(password_matches($password, $passwordHash)) {
+
+				// Check banned
+				if($userInfo['banned']) {
+					$loginError = 'This account has been banned.';
+					include(__DIR__ . '/../../../pages/login.php');
+					die();
+				}
+
 				login($userInfo);
 			}
 		}

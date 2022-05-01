@@ -28,6 +28,13 @@ class DisplayCategoryFunction extends ControllerFunction {
 		elseif(isset($args['thread'])) {
 			$thread = $args['thread'];
 			$threadName = get_thread_name($category, $thread);
+
+			// Check whether the thread exists
+			if($threadName === null) {
+				header('Location: /forum');
+				die();
+			}
+
 			$replies = get_thread_replies($category, $thread);
 
 			// Check whether the user has reply permissions

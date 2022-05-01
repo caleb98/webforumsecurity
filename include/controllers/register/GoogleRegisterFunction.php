@@ -20,6 +20,14 @@ class GoogleRegisterFunction extends ControllerFunction {
 		// and log them in if so.
 		if (google_id_exists($googleId)) {
 			$user = get_user_by_google_id($googleId);
+
+			// Check banned
+			if($user['banned']) {
+				$loginError = 'This account has been banned.';
+				include(__DIR__ . '/../../../pages/login.php');
+				die();
+			}
+
 			login($user);
 		}
 

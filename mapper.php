@@ -5,12 +5,14 @@ require_once('include/Database.php');
 require_once('include/controllers/login/LoginController.php');
 require_once('include/controllers/register/RegisterController.php');
 require_once('include/controllers/forum/ForumViewController.php');
+require_once('include/controllers/admin/AdminController.php');
 
 // Create the controllers list
 $controllers = [
 	'login' => new LoginController(),
 	'register' => new RegisterController(),
 	'forum' => new ForumViewController(),
+	'admin' => new AdminController(),
 ];
 
 // Get controller info

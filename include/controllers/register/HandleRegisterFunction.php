@@ -48,6 +48,7 @@ class HandleRegisterFunction extends ControllerFunction {
 
 			// Login the user
 			$user = get_user_by_username($username);
+
 			login($user);
 		}
 

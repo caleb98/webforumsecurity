@@ -12,6 +12,7 @@ create_permission('category.view');
 create_permission('category.add');
 create_permission('category.remove');
 create_permission('category.modify');
+create_permission('admin.view');
 
 create_permission('thread.create');
 create_permission('thread.reply');
@@ -41,6 +42,7 @@ add_role_permission('ADMIN', 'category.remove');
 add_role_permission('ADMIN', 'category.modify');
 add_role_permission('ADMIN', 'thread.lock');
 add_role_permission('ADMIN', 'thread.delete');
+add_role_permission('ADMIN', 'admin.view');
 
 create_role('ACCOUNT_ADMIN');
 add_role_permission('ACCOUNT_ADMIN', 'user.change_name');

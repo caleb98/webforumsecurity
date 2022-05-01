@@ -794,7 +794,7 @@ function get_category_threads(string $category, int $pageSize, int $pageNum): ar
 		JOIN comments ON comments.threadId = threads.id
 		JOIN users AS recentUser ON recentUser.id = comments.commenterId
 		WHERE categoryId = (SELECT id FROM categories WHERE name = ?)
-		GROUP BY threads.id
+		GROUP BY threadId
 		ORDER BY replyDate DESC
 		LIMIT ? OFFSET ?;
 		STR
@@ -887,6 +887,84 @@ function get_thread_replies(string $category, int $threadId): array|string {
 	}
 
 	return $replies;
+}
+
+/**
+ * Deletes a forum category and drops all related data (threads & replies.)
+ * 
+ * @param int	$categoryId		the id of the category to remove
+ * 
+ * @return string	empty string if successful; error string otherwise
+ */
+function delete_forum_category(int $categoryId): string {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	// Drop replies for threads in the category first
+	$stmt = $conn->prepare(<<<STR
+		DELETE comments FROM comments
+		JOIN threads ON threads.id = comments.threadId
+		JOIN categories ON categories.id = threads.categoryId
+		WHERE categories.id = ?;
+		STR
+	);
+	$stmt->bind_param('i', $categoryId);
+	$stmt->execute();
+
+	if($stmt->error) {
+		return $stmt->error;
+	}
+
+	// Drop threads in the category
+	$stmt = $conn->prepare(<<<STR
+		DELETE threads FROM threads
+		JOIN categories ON categories.id = threads.categoryId
+		WHERE categories.id = ?;
+		STR
+	);
+	$stmt->bind_param('i', $categoryId);
+	$stmt->execute();
+
+	if($stmt->error) {
+		return $stmt->error;
+	}
+
+	// Drop the category
+	$stmt = $conn->prepare(<<<STR
+		DELETE categories FROM categories
+		WHERE categories.id = ?;
+		STR
+	);
+	$stmt->bind_param('i', $categoryId);
+	$stmt->execute();
+
+	return $stmt->error;
+}
+
+/**
+ * Sets the ban status for a user.
+ * 
+ * @param int	$userId		the id of the user to set ban status for
+ * @param bool	$isBanned	the new ban status for this user
+ * 
+ * @return string	empty string if successful; error otherwise
+ */
+function set_user_ban_status(int $userId, bool $isBanned): string {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	// Update 
+	$stmt = $conn->prepare('UPDATE users SET banned=? WHERE id=?');
+	$stmt->bind_param('ii', $isBanned, $userId);
+	$stmt->execute();
+
+	return $stmt->error;
 }
 
 ?>

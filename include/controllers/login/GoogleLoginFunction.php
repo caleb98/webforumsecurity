@@ -14,6 +14,14 @@ class GoogleLoginFunction extends ControllerFunction {
 		// See if we can login directly using google id
 		if (google_id_exists($googleId)) {
 			$user = get_user_by_google_id($googleId);
+
+			// Check banned
+			if($user['banned']) {
+				$loginError = 'This account has been banned.';
+				include(__DIR__ . '/../../../pages/login.php');
+				die();
+			}
+
 			login($user);
 		}
 

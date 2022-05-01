@@ -1,7 +1,5 @@
 <?php
 
-include_once(__DIR__ . '/../include/Core.php');
-
 $pageTitle = 'Create Category';
 include_once(__DIR__ . '/../include/Header.php');
 
@@ -14,11 +12,11 @@ $createError = $createError ?? '';
 		<div class="col-6">
 
 			<!-- New Category Form -->
-			<form action="newcategory" method="post">
+			<form action="/admin/addcategory" method="post">
 				<h1>Create Category</h1>
 				<?php if($createError) : ?>
 					<div class="text-danger">
-						<?php echo $createError; ?>
+						<?php echo htmlspecialchars($createError); ?>
 					</div>
 				<?php endif; ?>
 

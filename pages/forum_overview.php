@@ -12,7 +12,7 @@ $categories = $categories ?? [];
 <div class="container mt-3">
 	<div class="row justify-content-center">
 		<div class="col-6">
-			<table class="table">
+			<table class="table table-hover">
 				<thead>
 					<tr>
 						<th scope="col" class="text-center">Category</th>

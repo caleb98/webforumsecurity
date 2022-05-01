@@ -34,6 +34,14 @@ class DiscordLoginFunction extends ControllerFunction {
 
 			// Check user exists. If not, redirect them to the registration page
 			if($user !== null) {
+
+				// Check banned
+				if($user['banned']) {
+					$loginError = 'This account has been banned.';
+					include(__DIR__ . '/../../../pages/login.php');
+					die();
+				}
+
 				login($user);
 			}
 			else {

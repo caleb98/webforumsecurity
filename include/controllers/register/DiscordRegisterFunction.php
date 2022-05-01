@@ -44,6 +44,14 @@ class DiscordRegisterFunction extends ControllerFunction {
 			// and log them in if so.
 			if (discord_id_exists($discordId)) {
 				$user = get_user_by_discord_id($discordId);
+
+				// Check banned
+				if($user['banned']) {
+					$loginError = 'This account has been banned.';
+					include(__DIR__ . '/../../../pages/login.php');
+					die();
+				}
+				
 				login($user);
 			}
 
