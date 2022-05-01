@@ -34,6 +34,19 @@ class HandleReplyPostFunction extends ControllerFunction {
 			die();
 		}
 
+		// Check that the thread exists and is not locked
+		$threadInfo = get_thread_info($category, $thread);
+		if($threadInfo === null) {
+			header('Location: /forum');
+			die();
+		}
+
+		if($threadInfo['isLocked']) {
+			$replyError = 'This thread is locked.';
+			header('Location: /forum/view?category=' . htmlspecialchars($category) . '&thread=' . htmlspecialchars($thread) . '&replyError=' . htmlspecialchars($replyError));
+			die();
+		}
+
 		// We're good to go, try to add the reply.
 		$error = add_thread_comment($category, $thread, $userIdentifier, $replyText);
 

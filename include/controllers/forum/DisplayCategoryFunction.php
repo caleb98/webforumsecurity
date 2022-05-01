@@ -12,6 +12,7 @@ class DisplayCategoryFunction extends ControllerFunction {
 	public function run(mixed $userIdentifier, string $context, array $args): void {
 		$category = $args['category'];
 		$replyError = $args['replyError'] ?? '';
+		$lockError = $args['lockError'] ?? '';
 
 		// Check that a category with the given name actually exists
 		$matches = count(array_filter(get_forum_categories(), function($cat) use ($category) {
@@ -27,19 +28,27 @@ class DisplayCategoryFunction extends ControllerFunction {
 		// If a thread is specified, show the thread
 		elseif(isset($args['thread'])) {
 			$thread = $args['thread'];
-			$threadName = get_thread_name($category, $thread);
+			$threadInfo = get_thread_info($category, $thread);
 
 			// Check whether the thread exists
-			if($threadName === null) {
+			if($threadInfo === null) {
 				header('Location: /forum');
 				die();
 			}
 
+			// Grab thread info
+			$threadName = $threadInfo['title'];
+			$threadLocked = $threadInfo['isLocked'];
+
+			// Get the replies
 			$replies = get_thread_replies($category, $thread);
 
 			// Check whether the user has reply permissions
 			$perms = get_user_permissions($userIdentifier, $context);
-			$showReplyBox = in_array('thread.reply', $perms);
+			$showReplyBox = in_array('thread.reply', $perms) && !$threadLocked;
+
+			// Check whether the user has lock permissions
+			$showLockButton = in_array('thread.lock', $perms);
 
 			include(__DIR__ . '/../../../pages/forum_thread.php');
 		}

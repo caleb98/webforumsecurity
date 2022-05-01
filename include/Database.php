@@ -788,7 +788,8 @@ function get_category_threads(string $category, int $pageSize, int $pageNum): ar
 			creatorUser.username AS creator, 
 			threads.date AS createDate,
 			recentUser.username AS replyUser,
-			MAX(comments.date) AS replyDate
+			MAX(comments.date) AS replyDate,
+			threads.isLocked AS isLocked
 		FROM threads
 		JOIN users AS creatorUser ON creatorUser.id = threads.creatorId
 		JOIN comments ON comments.threadId = threads.id
@@ -818,14 +819,14 @@ function get_category_threads(string $category, int $pageSize, int $pageNum): ar
 }
 
 /**
- * Retrieves the name of a thread in a category with a given id.
+ * Retrieves the info of a thread in a category with a given id.
  * 
  * @param string	$category	the category the thread is in
  * @param int		$threadId	the id of the thread
  * 
- * @return ?string	the name of the thread; null if no thread with this id exists in the given category
+ * @return ?array	thread info; null if no thread with this id exists in the given category
  */
-function get_thread_name(string $category, int $threadId): ?string {
+function get_thread_info(string $category, int $threadId): ?array {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -834,7 +835,7 @@ function get_thread_name(string $category, int $threadId): ?string {
 
 	// Run statement
 	$stmt = $conn->prepare(
-		'SELECT title FROM threads WHERE id = ? AND categoryId = (SELECT id FROM categories WHERE name = ?)');
+		'SELECT id, title, date, isLocked FROM threads WHERE id = ? AND categoryId = (SELECT id FROM categories WHERE name = ?)');
 	$stmt->bind_param('is', $threadId, $category);
 	$stmt->execute();
 
@@ -843,7 +844,36 @@ function get_thread_name(string $category, int $threadId): ?string {
 	if($result->num_rows != 1) {
 		return null;
 	}
-	return $result->fetch_assoc()['title'];
+	return $result->fetch_assoc();
+}
+
+/**
+ * Sets a thread's locked status.
+ * 
+ * @param string	$category	the category the thread is in
+ * @param int		$threadId	the id of the thread
+ * @param bool		$isLocked	the new locked status
+ * 
+ * @return string	empty string if successful; error string otherwise
+ */
+function set_thread_locked(string $category, int $threadId, bool $isLocked): string {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	$stmt = $conn->prepare(<<<STR
+		UPDATE threads 
+		SET isLocked = ? 
+		WHERE id = ?
+		AND categoryId = (SELECT id FROM categories WHERE name = ?);
+		STR
+	);
+	$stmt->bind_param('iis', $isLocked, $threadId, $category);
+	$stmt->execute();
+
+	return $stmt->error;
 }
 
 /**

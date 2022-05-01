@@ -11,6 +11,7 @@ $showPostButton = $showPostButton ?? false;
 <div class="container mt-3">
 	<div class="row justify-content-center mb-3">
 		<div class="col-8">
+			<h3><?php echo ucwords(htmlspecialchars($category)); ?></h3>
 			<table class="table table-hover">
 				<thead>
 					<tr>
@@ -22,7 +23,7 @@ $showPostButton = $showPostButton ?? false;
 				</thead>
 				<tbody>
 					<?php foreach($threads as $thread) : ?>
-						<tr>
+						<tr class="<?php if($thread['isLocked']) { echo 'table-warning'; }?>">
 							<td>
 								<a href="/forum/view?category=<?php echo htmlspecialchars($category);?>&thread=<?php echo $thread['threadId'];?>">
 									<?php echo htmlspecialchars($thread['title']); ?>

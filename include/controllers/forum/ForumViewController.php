@@ -7,6 +7,8 @@ require_once(__DIR__ . '/DisplayCategoryFunction.php');
 require_once(__DIR__ . '/DisplayCreatePostFunction.php');
 require_once(__DIR__ . '/HandleCreatePostFunction.php');
 require_once(__DIR__ . '/HandleReplyPostFunction.php');
+require_once(__DIR__ . '/HandleLockThreadFunction.php');
+
 
 class ForumViewController extends WebForumController {
 
@@ -25,6 +27,9 @@ class ForumViewController extends WebForumController {
 
 		// Mapping for replying to a post
 		$this->add_post_mapping('view', new HandleReplyPostFunction());
+
+		// Mapping for locking/unlocking a post
+		$this->add_post_mapping('lock', new HandleLockThreadFunction());
 
 	}
 
