@@ -1,3 +1,8 @@
+<FilesMatch "\.(lock|json|md)$">
+	Order allow,deny
+	Deny from all
+</FilesMatch>
+
 RewriteEngine on
 RewriteRule ^([a-zA-Z]+)$ mapper.php?control=$1 [QSA]
 RewriteRule ^([a-zA-Z]+)/([a-zA-Z]+)$ mapper.php?control=$1&function=$2 [QSA]

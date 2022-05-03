@@ -31,7 +31,7 @@ function is_valid_password(string $password) : bool {
 	// We don't want to restrict passwords by enforcing
 	// too many requirements, so only check that the
 	// length is suitable.
-	return strlen($password) >= 8 && strlen($password) < 50;
+	return strlen($password) >= 8 && strlen($password) <= 50;
 }
 
 ?> 

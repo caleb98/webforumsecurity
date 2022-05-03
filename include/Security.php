@@ -5,8 +5,10 @@
  * set of hash options are desired, they may be updated here.
  */
 $PASSWORD_HASH_SETTINGS = [
-	"algorithm" => PASSWORD_BCRYPT,
-	"options" => []
+	'algorithm' => PASSWORD_BCRYPT,
+	'options' => [
+        //'cost' => 15
+    ]
 ];
 
 /**
@@ -17,8 +19,8 @@ $PASSWORD_HASH_SETTINGS = [
 function hash_password(string $password) : string {
 	global $PASSWORD_HASH_SETTINGS;
 
-	$algo = $PASSWORD_HASH_SETTINGS["algorithm"];
-	$options = $PASSWORD_HASH_SETTINGS["options"];
+	$algo = $PASSWORD_HASH_SETTINGS['algorithm'];
+	$options = $PASSWORD_HASH_SETTINGS['options'];
 
 	return password_hash($password, $algo, $options);
 }
@@ -41,8 +43,8 @@ function password_matches(string $password, string $hashed) : bool {
 function password_needs_update(string $hashed) : bool {
 	global $PASSWORD_HASH_SETTINGS;
 
-	$algo = $PASSWORD_HASH_SETTINGS["algorithm"];
-	$options = $PASSWORD_HASH_SETTINGS["options"];
+	$algo = $PASSWORD_HASH_SETTINGS['algorithm'];
+	$options = $PASSWORD_HASH_SETTINGS['options'];
 
 	return password_needs_rehash($hashed, $algo, $options);
 }

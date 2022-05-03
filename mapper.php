@@ -6,6 +6,7 @@ require_once('include/controllers/login/LoginController.php');
 require_once('include/controllers/register/RegisterController.php');
 require_once('include/controllers/forum/ForumViewController.php');
 require_once('include/controllers/admin/AdminController.php');
+require_once('include/controllers/profile/ProfileController.php');
 
 // Create the controllers list
 $controllers = [
@@ -13,11 +14,21 @@ $controllers = [
 	'register' => new RegisterController(),
 	'forum' => new ForumViewController(),
 	'admin' => new AdminController(),
+	'profile' => new ProfileController(),
 ];
 
 // Get controller info
 $controlName = $_GET['control'];
 $functionName = $_GET['function'] ?? null;
+
+// If the user's password needs to be updated, redirect the user to the password update page
+$user = get_user_info();
+if ($user !== null && isset($user['password']) 
+	&& password_needs_update($user['password']) 
+	&& !($controlName === 'profile' && $functionName === 'changepass')) {
+	header('Location: /profile/changepass?user=' . htmlspecialchars($user['username']) . '&showUpdateMessage=1');
+	die();
+}
 
 // Check if an associated controller exists
 if(!isset($controllers[$controlName])) {

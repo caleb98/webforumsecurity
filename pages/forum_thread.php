@@ -58,7 +58,9 @@ $threadLocked = $threadLocked ?? false;
 			<div class="col-2 text-center thread-reply-profile me-2">
 				<img src="/img/profile.ico" class="rounded" style="width:100px;height:100px;">
 				<p>
-					<?php echo htmlspecialchars($reply['user']) ?><br>
+					<a href="/profile/view?user=<?php echo htmlspecialchars($reply['user']); ?>">
+						<?php echo htmlspecialchars($reply['user']) ?>
+					</a><br>
 					<?php echo htmlspecialchars($reply['date']) ?>
 				</p>
 			</div>

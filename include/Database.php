@@ -185,9 +185,9 @@ function discord_id_exists(string $id): bool {
 /**
  * Retrieves a user from the database using thier username.
  * 
- * @return array	array containing user information
+ * @return array	array containing user information; null if user not found
  */
-function get_user_by_username(string $username): array {
+function get_user_by_username(string $username): ?array {
 	// Connect to the database
 	$conn = get_db_connection();
 	if ($conn->connect_error) {
@@ -992,6 +992,173 @@ function set_user_ban_status(int $userId, bool $isBanned): string {
 	// Update 
 	$stmt = $conn->prepare('UPDATE users SET banned=? WHERE id=?');
 	$stmt->bind_param('ii', $isBanned, $userId);
+	$stmt->execute();
+
+	return $stmt->error;
+}
+
+/**
+ * Retrieves the comments for a user, ordered by most recent dates.
+ * 
+ * @param int	$userId		the id of the user
+ * @param int	$pageSize	the number of comments to retrieve per page
+ * @param int	$pageNum	the page to retrieve
+ * 
+ * @return array|string		array of comments if successful; error string otherwise
+ */
+function get_user_comments(int $userId, int $pageSize, int $pageNum): array|string {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	// Calculate page offset
+	$offset = $pageSize * $pageNum;
+
+	// Create statement
+	$stmt = $conn->prepare(<<<STR
+		SELECT 
+			comments.text AS text, 
+			threads.id AS threadId, 
+			comments.date AS replyDate, 
+			threads.title AS threadTitle, 
+			categories.name AS categoryName 
+		FROM comments
+		JOIN threads ON threads.id = comments.threadId
+		JOIN categories ON threads.categoryId = categories.id
+		WHERE commenterId = ?
+		ORDER BY replyDate DESC
+		LIMIT ? OFFSET ?;
+		STR
+	);
+	$stmt->bind_param('iii', $userId, $pageSize, $offset);
+	$stmt->execute();
+
+	if($stmt->error) {
+		return $stmt->error;
+	}
+
+	$result = $stmt->get_result();
+
+	// Collect the comments
+	$comments = [];
+	while($row = $result->fetch_assoc()) {
+		$comments[] = $row;
+	}
+
+	return $comments;
+}
+
+/**
+ * Retrieves the number of comments a user has posted across the forum.
+ * 
+ * @param int	$userId		the id of the user
+ * 
+ * @return int|string	number of total posts if successful; error string otherwise
+ */
+function get_user_comment_count(int $userId): int|string {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	$stmt = $conn->prepare(<<<STR
+		SELECT COUNT(commenterId) AS postCount
+		FROM comments
+		WHERE commenterId = ?
+		GROUP BY commenterId;
+		STR
+	);
+	$stmt->bind_param('i', $userId);
+	$stmt->execute();
+
+	if($stmt->error) {
+		return $stmt->error;
+	}
+
+	$result = $stmt->get_result();
+	if($result->num_rows === 0) {
+		return 0;
+	}
+	else {
+		return $result->fetch_assoc()['postCount'];
+	}
+}
+
+/**
+ * Updates a user's username.
+ * 
+ * @param int		$userId		id of the user to update
+ * @param string	$newName	new username
+ * 
+ * @return string	empty string on success; error message otherwise
+ */
+function update_username(int $userId, string $newName): string {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	$stmt = $conn->prepare(<<<STR
+		UPDATE users
+		SET username = ?
+		WHERE id = ?;
+		STR
+	);
+	$stmt->bind_param('si', $newName, $userId);
+	$stmt->execute();
+
+	if($stmt->error) {
+		return $stmt->error;
+	}
+
+	// Now update their ACCOUNT_ADMIN role contexts
+	$stmt = $conn->prepare(<<<STR
+		DELETE user_roles FROM user_roles
+		JOIN users ON users.id = user_roles.userId
+		JOIN roles ON roles.id = user_roles.roleId
+		WHERE users.id = ?
+		AND roles.role = 'ACCOUNT_ADMIN';
+		STR
+	);
+	$stmt->bind_param('i', $userId);
+	$stmt->execute();
+
+	if($stmt->error) {
+		return $stmt->error;
+	}
+
+	// Add ACCOUNT_ADMIN role for new username context
+	$error = add_user_role($userId, '/^user\.' . $newName . '$/', 'ACCOUNT_ADMIN');
+
+	return $error;
+}
+
+/**
+ * Updates a user's password. 
+ * 
+ * @param int		$userId		user id to update
+ * @param string	$hashed		new password hash
+ * 
+ * @return string	empty string on success; error message otherwise
+ */
+function update_user_password(int $userId, string $hashed): string {
+	// Connect to the database
+	$conn = get_db_connection();
+	if ($conn->connect_error) {
+		die('DB connection failed: ' . $conn->connect_error);
+	}
+
+	$stmt = $conn->prepare(<<<STR
+		UPDATE users
+		SET password = ?
+		WHERE id = ?;
+		STR
+	);
+	$stmt->bind_param('si', $hashed, $userId);
 	$stmt->execute();
 
 	return $stmt->error;

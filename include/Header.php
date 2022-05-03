@@ -32,16 +32,6 @@ if (is_logged_in()) {
 		$roles = get_user_roles($user['id'], '');
 		$showAdminButton = in_array('ADMIN', $roles);
 	}
-
-	if (isset($user['password']) && password_needs_update($user['password'])) {
-		echo 'password must be updated';
-	}
-	elseif (isset($user['password'])) {
-		echo 'password is okay';
-	}
-	else {
-		echo 'no check for password - account made via 3rd party';
-	}
 }
 ?>
 

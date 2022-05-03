@@ -29,9 +29,18 @@ $showPostButton = $showPostButton ?? false;
 									<?php echo htmlspecialchars($thread['title']); ?>
 								</a>
 							</td>
-							<td class='text-center'><?php echo htmlspecialchars($thread['creator']);?></td>
-							<td class='text-center'><?php echo htmlspecialchars($thread['createDate']);?></td>
-							<td class='text-center'><?php echo htmlspecialchars($thread['replyUser'] . ' at ' . $thread['replyDate']);?></td>
+							<td class='text-center'>
+								<a href="/profile/view?user=<?php echo htmlspecialchars($thread['creator']); ?>">
+									<?php echo htmlspecialchars($thread['creator']);?>
+								</a>
+							</td>
+							<td class='text-center'><?php echo htmlspecialchars($thread['createDate']); ?></td>
+							<td class='text-center'>
+								<a href="/profile/view?user=<?php echo htmlspecialchars($thread['replyUser']); ?>">
+									<?php echo htmlspecialchars($thread['replyUser']); ?>
+								</a>
+								<?php echo htmlspecialchars(' at ' . $thread['replyDate']); ?>
+							</td>
 						</tr>
 					<?php endforeach; ?>
 				</tbody>
