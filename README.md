@@ -31,4 +31,6 @@ SetEnv DISCORD_CLIENT_SECRET "client_secret"
 
 This project also makes use of the `mod_rewrite` module included in the Apache webserver to ensure that access URLs are properly mapped to application controllers. Ensure that this module is enabled before continuing.  
 
+The final step to ensure that the correct roles and permissions are included in the database is to run the `createroleperms.php` file. This will create all necessary permissions and roles for the project. Additional roles/permissions may be created by modifying this file, or by manually inserting to the database.  
+
 Once the above setup is completed, move the repository contents into your Apache root directory and restart the Apache webserver service. You should now be able to access the web forum project by navigating `localhost` in your browser.  
